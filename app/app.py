@@ -1,5 +1,10 @@
 import sys, os
+
+# Add parent directory to path (for 'models' package)
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# Add current directory to path (for 'routing_core' sibling module)
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
+
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS 
 from routing_core import get_routes_and_metrics, _build_or_load_graph

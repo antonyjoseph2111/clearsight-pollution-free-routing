@@ -1,0 +1,11 @@
+Flask
+flask-cors
+pandas
+numpy
+osmnx
+networkx
+scipy
+scikit-learn
+pyarrow
+gunicorn
+requests

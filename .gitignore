@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.git
+.mypy_cache
+.pytest_cache
+.hypothesis
+
+# Flask
+instance/
+.webassets-cache
+
+# Data (exclude large files if necessary, but keep directory structure)
+data/*.parquet
+data/*.csv
+!data/.gitkeep
+
+# Project specific
+cache/

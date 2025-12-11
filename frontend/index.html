@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pollution-Aware Traffic Routing (SIH)</title>
+    <!-- Leaflet CSS for Map Display -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="style.css" />
+    <!-- Tailwind CSS CDN for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom CSS to ensure map fills space and controls are overlaid */
+        #map { 
+            height: 100vh; 
+            width: 100%; 
+            position: absolute;
+            z-index: 0;
+        }
+        #controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            max-width: 400px;
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        .leaflet-tooltip {
+            background-color: rgba(255, 255, 255, 0.9);
+            border: 1px solid #ccc;
+            padding: 5px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+            border-radius: 6px;
+        }
+        /* Loading overlay style */
+        .loading::after {
+            content: "Calculating Routes...";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #0070C0;
+            border-radius: 12px;
+        }
+    </style>
+</head>
+<body class="font-sans">
+
+    <!-- Map Container -->
+    <div id="map"></div>
+    
+    <!-- Controls and Results Panel -->
+    <div id="controls" class="space-y-4">
+        <h2 class="text-2xl font-bold text-gray-800 border-b pb-2">🌬️ Pollution-Aware Router</h2>
+        <p class="text-sm text-gray-600">
+            Click on the map to set <span class="font-semibold">Start</span> (first click)
+            and <span class="font-semibold">End</span> (second click) points within Delhi-NCR.
+        </p>
+
+        <!-- Input Fields -->
+        <div class="space-y-2">
+            <label class="block text-xs text-gray-600">Start Location (Lat, Lon)</label>
+            <input type="text" id="start_input" placeholder="Click on map to set start"
+                   class="w-full p-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700"
+                   readonly>
+            <label class="block text-xs text-gray-600">End Location (Lat, Lon)</label>
+            <input type="text" id="end_input" placeholder="Click on map to set end"
+                   class="w-full p-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700"
+                   readonly>
+        </div>
+        
+        <!-- Pollution Preference Slider -->
+        <div class="space-y-1 pt-2">
+            <label for="weight_slider" class="block text-sm font-medium text-gray-700">
+                Pollution Priority (w): <span id="weight_value" class="font-bold text-blue-600">0.50</span>
+            </label>
+            <input type="range" id="weight_slider" min="0" max="100" value="50"
+                   class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+            <div class="flex justify-between text-xs text-gray-500">
+                <span>Fastest (w=0)</span>
+                <span>Cleanest (w=1)</span>
+            </div>
+        </div>
+        <button id="refresh_traffic" class="w-full py-2 mt-2 bg-yellow-500 text-white rounded-lg shadow-md hover:bg-yellow-600">
+  		Refresh Live Traffic
+	</button>
+
+        <button id="route_button"
+                class="w-full py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed">
+            Find Pollution-Optimized Routes
+        </button>
+
+        <!-- Error / Info -->
+        <p id="message" class="text-xs text-red-600 hidden"></p>
+
+        <!-- Results Display -->
+        <div id="results" class="pt-4 hidden">
+            <h3 class="text-lg font-semibold text-gray-800">Route Comparison:</h3>
+            <div class="overflow-x-auto">
+                <table id="metrics_table" class="min-w-full divide-y divide-gray-200 text-sm mt-2">
+                    <tbody></tbody>
+                </table>
+                <p class="text-xs text-gray-500 pt-2">
+                    *PS-min: Pollution Score-Minutes (Exposure Dosage).
+                    <br>
+                    *Fastest Route is marked <span style="color: #E60000; font-weight: bold;">RED</span>.
+                    Your chosen route is marked <span style="color: #0070C0; font-weight: bold;">BLUE</span>.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS and Custom Script -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

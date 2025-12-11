@@ -1,0 +1,78 @@
+/*
+ * style.css
+ * * Provides custom styles, font definitions, and necessary structural overrides.
+ * Tailwind CSS is primarily used in index.html, so this file is kept minimal.
+ */
+
+/* 1. Base Font and Reset */
+body {
+    /* Use Inter font for a clean, modern look */
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden; /* Prevent horizontal scrolling */
+}
+
+/* 2. Leaflet Map Configuration */
+/* The #map ID styling is duplicated here and in <style> tags of index.html
+   to ensure maximum compatibility and immediate loading before scripts. */
+#map {
+    height: 100vh; 
+    width: 100%; 
+    position: absolute;
+    z-index: 0; /* Keeps the map behind the controls panel */
+}
+
+/* 3. Controls Panel Overrides */
+#controls {
+    /* Use a responsive layout for mobile friendliness */
+    width: 90%; 
+    max-width: 400px; 
+    transition: transform 0.3s ease-in-out;
+}
+
+/* Custom loading state indicator for the controls panel */
+#controls.loading {
+    /* Subtle blur and opacity reduction while calculating */
+    opacity: 0.9;
+    pointer-events: none; /* Disable interaction */
+}
+
+/* Ensure the table is readable */
+#metrics_table th, #metrics_table td {
+    padding: 8px;
+    text-align: left;
+}
+
+/* Enhance the appearance of the range slider track */
+input[type="range"]::-webkit-slider-runnable-track {
+    background: linear-gradient(to right, #00B050, #0070C0, #E60000);
+    border-radius: 4px;
+    height: 8px;
+}
+input[type="range"]::-moz-range-track {
+    background: linear-gradient(to right, #00B050, #0070C0, #E60000);
+    border-radius: 4px;
+    height: 8px;
+}
+
+/* Style the thumb (the handle) of the slider */
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    margin-top: -4px; /* Adjust vertical position */
+    height: 16px;
+    width: 16px;
+    background: #4A90E2;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.4);
+}
+input[type="range"]::-moz-range-thumb {
+    height: 16px;
+    width: 16px;
+    background: #4A90E2;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.4);
+}

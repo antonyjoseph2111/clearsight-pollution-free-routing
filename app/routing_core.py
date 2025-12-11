@@ -299,6 +299,46 @@ def snap_to_nearest_node(latlon: Tuple[float, float]) -> Dict[str, Any]:
     }
 
 
+
+# ==============================
+# ✅ SPATIAL INDEX HELPER
+# ==============================
+def _edge_midpoints_and_index(G):
+    """
+    Returns (coords, idx_map) for building a cKDTree of edge midpoints.
+    coords: (M, 2) array of (lat, lon)
+    idx_map: dict { index_in_coords -> (u, v, k) }
+    """
+    coords = []
+    idx_map = {}
+    
+    if G is None:
+        return np.array([]), {}
+
+    idx = 0
+    for u, v, k, data in G.edges(keys=True, data=True):
+        # We try to use 'geometry' if present (accurate midpoint)
+        # otherwise average of node coords.
+        try:
+            if "geometry" in data:
+                mid = data["geometry"].interpolate(0.5, normalized=True)
+                # If these are shapely points, accessing .y / .x works
+                coords.append([mid.y, mid.x])
+            else:
+                n1 = G.nodes[u]
+                n2 = G.nodes[v]
+                lat = (n1['y'] + n2['y']) / 2
+                lon = (n1['x'] + n2['x']) / 2
+                coords.append([lat, lon])
+            
+            idx_map[idx] = (u, v, k)
+            idx += 1
+        except Exception:
+            continue
+
+    return np.array(coords), idx_map
+
+
 _POLLUTION_CACHE = None
 _POLLUTION_CACHE_TS = 0.0
 _POLLUTION_CACHE_TTL = 60.0  # seconds

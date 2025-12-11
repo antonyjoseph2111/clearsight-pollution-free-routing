@@ -140,7 +140,9 @@ def _build_or_load_graph():
 
     if G_proj is None or G_orig is None:
         print("Loading road network...")
-        G_orig = ox.graph_from_place(PLACE, network_type="drive")
+        # Use a smaller radius (2000m) to stay within Render's free tier memory limits (512MB).
+        # "New Delhi" as a place is too large and causes OOM kills.
+        G_orig = ox.graph_from_point((28.6139, 77.2090), dist=2000, network_type="drive")
         G_proj = ox.project_graph(G_orig)
 
         # Basic travel time estimate (length / speed)

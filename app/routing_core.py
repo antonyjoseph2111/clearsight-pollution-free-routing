@@ -185,35 +185,14 @@ def _build_or_load_graph():
         # 2. Download from OSM if Cache Failed or Missing
         # 2. Download from OSM if Cache Failed or Missing
         if G_proj is None:
-            print("🚀 SHOWCASE LITE MODE: Downloading 1km Radius (Ultra-Safe)...")
-            center_point = (28.6139, 77.2090) 
-            dist = 1000  # Reduced to 1km to prevent ANY risk of OOM/Timeout
+            # If we reached here, cache load failed or file missing.
+            # CRITICAL SAFETY: Do NOT try to download from OSM on Render Free Tier.
+            print("⚠️ Pre-generated graph missing or failed to load. Using SYNTHETIC GRID to prevent crash.")
             
-            # Filter: Exclude residential/service roads to save RAM (Nodes reduced by ~70%)
-            cf = '["highway"~"motorway|trunk|primary|secondary|tertiary"]'
-            
-            try:
-                G_orig = ox.graph_from_point(
-                    center_point, 
-                    dist=dist, 
-                    custom_filter=cf
-                )
-                print(f"✅ Low-Memory Graph loaded. Nodes: {len(G_orig.nodes)}")
-                G_proj = ox.project_graph(G_orig)
-                
-                # Save Cache
-                try:
-                    ox.save_graphml(G_proj, filepath=cache_path)
-                except Exception as e:
-                    print(f"Warning: Could not save cache ({e})")
-                    
-            except Exception as e:
-                print(f"⚠️ OSM Download Failed: {e}. Generating SYNTHETIC fallback...")
-                
-                # --- STRATEGY C: SYNTHETIC GRID (Bulletproof) ---
-                # Creates a small grid graph so the app NEVER crashes.
-                G_orig = nx.grid_2d_graph(5, 5) # 5x5 grid
-                G_orig = nx.MultiDiGraph(G_orig) # Convert to MultiDiGraph
+            # --- STRATEGY C: SYNTHETIC GRID (Bulletproof) ---
+            # Creates a small grid graph so the app NEVER crashes.
+            G_orig = nx.grid_2d_graph(5, 5) # 5x5 grid
+            G_orig = nx.MultiDiGraph(G_orig) # Convert to MultiDiGraph
                 
                 # Assign fake coordinates centered on CP
                 for i, node in enumerate(G_orig.nodes()):
@@ -344,23 +323,39 @@ def get_routes_and_metrics(start_coords, end_coords, user_weight):
         return compute_green_cost(T, P, E, w_T=w_T, w_P=w_P, w_E=w_E)
 
     # --- Main (green) route using matrix cost ---
-    main_route = nx.shortest_path(
-        G_proj,
-        orig,
-        dest,
-        weight=matrix_cost
-    )
+    try:
+        main_route = nx.shortest_path(
+            G_proj,
+            orig,
+            dest,
+            weight=matrix_cost
+        )
+    except nx.NetworkXNoPath:
+        return {
+            "error": "No route possible between these points. The map snippet is small and roads may not connect."
+        }
+    except Exception as e:
+         return {
+            "error": f"Routing failed: {e}"
+        }
 
     # --- Fastest route using raw travel_time only ---
-    fast_route = nx.shortest_path(
-        G_proj,
-        orig,
-        dest,
-        weight="travel_time"
-    )
+    try:
+        fast_route = nx.shortest_path(
+            G_proj,
+            orig,
+            dest,
+            weight="travel_time"
+        )
+    except nx.NetworkXNoPath:
+        fast_route = main_route # Fallback
 
     def get_coords(route):
-        return [(G_orig.nodes[n]["y"], G_orig.nodes[n]["x"]) for n in route]
+        try:
+            return [(G_orig.nodes[n]["y"], G_orig.nodes[n]["x"]) for n in route]
+        except KeyError:
+            # Fallback if nodes missing from G_orig (rare sync issue)
+            return []
 
     # Simple metrics for now (you can extend with real time/PS sums)
     metrics = {

@@ -189,7 +189,7 @@ def _build_or_load_graph():
             # Use specific point and radius (2km) to save memory (vs whole city)
             # Connaught Place / Central Delhi
             center_point = (28.6139, 77.2090) 
-            dist = 2000 # 2 km radius - reduced for stability on free tier
+            dist = 1500 # 1.5 km radius - reduced further to prevent Gunicorn timeout (30s)
             
             try:
                 G_orig = ox.graph_from_point(center_point, dist=dist, network_type="drive")

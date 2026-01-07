@@ -169,47 +169,47 @@ def _build_or_load_graph():
             try:
                 G_proj = ox.load_graphml(cache_path)
                 
-                # Verify projection
+                # Check for CRS
                 if G_proj.graph.get('crs') is None:
-                     # If unknown, assume project it to be safe
                      G_proj = ox.project_graph(G_proj)
                 
-                # Reconstruct G_orig for coordinate lookups if needed
-                # (We map G_proj back to unprojected for consistency)
+                # Reconstruct G_orig
                 if G_orig is None:
                      G_orig = ox.project_graph(G_proj, to_crs="EPSG:4326")
-
+                     
             except Exception as e:
-                print(f"Failed to load cache: {e}. Downloading new graph...")
+                print(f"Failed to load cache: {e}. Discarding.")
                 G_proj = None
 
-            # 2. Download from OSM (Filtered for Memory Efficiency)
+        # 2. Download from OSM if Cache Failed or Missing
+        if G_proj is None:
             print("🚀 SHOWCASE LITE MODE: Downloading 2km Radius (Connaught Place)...")
             
             # Strategy: Fixed 2km Radius (Guaranteed Connectivity & Low Memory)
             center_point = (28.6139, 77.2090) 
             dist = 2000 # 2km radius
             
-            G_orig = ox.graph_from_point(
-                center_point, 
-                dist=dist, 
-                network_type="drive"
-            )
-            print(f"✅ Showcase Graph loaded (2km radius). Nodes: {len(G_orig.nodes)}")
-
-            G_proj = ox.project_graph(G_orig)
-            
-            # Cache it for next time
             try:
-                print(f"Saving graph cache to {cache_path}...")
-                ox.save_graphml(G_proj, filepath=cache_path)
+                G_orig = ox.graph_from_point(
+                    center_point, 
+                    dist=dist, 
+                    network_type="drive"
+                )
+                print(f"✅ Showcase Graph loaded (2km radius). Nodes: {len(G_orig.nodes)}")
+                G_proj = ox.project_graph(G_orig)
+                
+                # Save Cache
+                try:
+                    print(f"Saving graph cache to {cache_path}...")
+                    ox.save_graphml(G_proj, filepath=cache_path)
+                except Exception as e:
+                    print(f"Warning: Could not save cache ({e})")
+                    
             except Exception as e:
-                print(f"Warning: Could not save cache ({e}) - continuing without it.")
-            except Exception as e:
-                print(f"Error downloading/saving graph: {e}")
-                # Fallback to a tiny graph if download fails? 
-                # For now just let it crash or return empty is risky.
-                # We assume download works.
+                print(f"CRITICAL ERROR: Failed to download map: {e}")
+                # Create an empty graph to prevent 500s (though routing will fail)
+                G_orig = nx.MultiDiGraph()
+                G_proj = nx.MultiDiGraph()
 
         # 3. Enhance Graph (Travel Time)
         if G_proj:

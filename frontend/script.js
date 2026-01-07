@@ -141,15 +141,27 @@ function updateInput(which) {
 async function onMapClick(e) {
     hideMessage();
     const lat = e.latlng.lat, lon = e.latlng.lng;
+    
+    // Optimistic UI: Immediately place a temporary marker so user sees the click registered
+    const tempMarker = L.marker([lat, lon], { opacity: 0.5 }).addTo(map);
+    showMessage('Snapping to road...', false);
+
     console.log(`Map clicked at ${lat}, ${lon}`);
     let snapped;
     try {
         snapped = await snapToServer(lat, lon);
+        showMessage('Point set', false);
     } catch (err) {
         console.warn('Snap failed, using raw coords', err);
+        showMessage('Snap failed - using exact location', false); // Not an error to user
         snapped = { lat, lon };
+    } finally {
+        // Remove temp marker
+        map.removeLayer(tempMarker);
     }
+    
     placeOrMoveMarker(nextClickTarget, [snapped.lat, snapped.lon]);
+    
     // alternate target
     nextClickTarget = (nextClickTarget === 'start') ? 'end' : 'start';
 }

@@ -185,9 +185,9 @@ def _build_or_load_graph():
         # 2. Download from OSM if Cache Failed or Missing
         # 2. Download from OSM if Cache Failed or Missing
         if G_proj is None:
-            print("🚀 SHOWCASE LITE MODE: Downloading 1.5km Radius (Memory Optimized)...")
+            print("🚀 SHOWCASE LITE MODE: Downloading 1km Radius (Ultra-Safe)...")
             center_point = (28.6139, 77.2090) 
-            dist = 1500  # Reduced to 1.5km for maximum safety
+            dist = 1000  # Reduced to 1km to prevent ANY risk of OOM/Timeout
             
             # Filter: Exclude residential/service roads to save RAM (Nodes reduced by ~70%)
             cf = '["highway"~"motorway|trunk|primary|secondary|tertiary"]'

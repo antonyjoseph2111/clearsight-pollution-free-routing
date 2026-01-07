@@ -183,14 +183,22 @@ def _build_or_load_graph():
                 G_proj = None
 
         # 2. Download from OSM if Cache Failed or Missing
+        # 2. Download from OSM if Cache Failed or Missing
         if G_proj is None:
-            print("🚀 SHOWCASE LITE MODE: Downloading 2km Radius (Connaught Place)...")
+            print("🚀 SHOWCASE LITE MODE: Downloading 1.5km Radius (Memory Optimized)...")
             center_point = (28.6139, 77.2090) 
-            dist = 2000 
+            dist = 1500  # Reduced to 1.5km for maximum safety
+            
+            # Filter: Exclude residential/service roads to save RAM (Nodes reduced by ~70%)
+            cf = '["highway"~"motorway|trunk|primary|secondary|tertiary"]'
             
             try:
-                G_orig = ox.graph_from_point(center_point, dist=dist, network_type="drive")
-                print(f"✅ Showcase Graph loaded (2km radius). Nodes: {len(G_orig.nodes)}")
+                G_orig = ox.graph_from_point(
+                    center_point, 
+                    dist=dist, 
+                    custom_filter=cf
+                )
+                print(f"✅ Low-Memory Graph loaded. Nodes: {len(G_orig.nodes)}")
                 G_proj = ox.project_graph(G_orig)
                 
                 # Save Cache

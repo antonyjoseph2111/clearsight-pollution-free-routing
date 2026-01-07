@@ -44,7 +44,16 @@ def snap():
         return jsonify({'error': f'Invalid payload: {e}'}), 400
 
     try:
-        snapped = snap_to_nearest_node((lat, lon))
+        # Explicit try/catch specifically for graph operations
+        try:
+             snapped = snap_to_nearest_node((lat, lon))
+        except MemoryError:
+             logging.error("OOM during snap")
+             return jsonify({'error': 'Server ran out of memory loading the map.'}), 503
+        except Exception as inner_e:
+             logging.error(f"Snap logic failed: {inner_e}")
+             raise inner_e
+
         return jsonify(snapped), 200
     except Exception as e:
         return jsonify({'error': f'Failed to snap point: {e}'}), 500
@@ -121,7 +130,14 @@ def traffic_refresh():
         spacing_deg = float(payload.get('spacing_deg', 0.005))
 
         import tomtom_integration as tt
-        res = tt.update_graph_from_tomtom_points(points=points, max_points=max_points, spacing_deg=spacing_deg)
+        
+        try:
+             res = tt.update_graph_from_tomtom_points(points=points, max_points=max_points, spacing_deg=spacing_deg)
+        except Exception as inner_e:
+             logging.error(f"Traffic update failed: {inner_e}")
+             # Return valid JSON error even if inner logic fails
+             return jsonify({'ok': False, 'error': f"Traffic logic error: {str(inner_e)}"}), 500
+
         return jsonify({'ok': True, 'result': res}), 200
     except Exception as e:
         return jsonify({'ok': False, 'error': str(e)}), 500

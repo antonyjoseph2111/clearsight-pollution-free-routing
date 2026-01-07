@@ -186,10 +186,10 @@ def _build_or_load_graph():
         # 2. Download if missing
         if G_proj is None:
             print("Downloading graph from OSM...")
-            # Use specific point and radius (5km) to save memory (vs whole city)
+            # Use specific point and radius (2km) to save memory (vs whole city)
             # Connaught Place / Central Delhi
             center_point = (28.6139, 77.2090) 
-            dist = 5000 # 5 km radius
+            dist = 2000 # 2 km radius - reduced for stability on free tier
             
             try:
                 G_orig = ox.graph_from_point(center_point, dist=dist, network_type="drive")

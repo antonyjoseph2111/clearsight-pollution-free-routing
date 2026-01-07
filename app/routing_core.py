@@ -142,6 +142,7 @@ import gc
 
 def _build_or_load_graph():
     global G_proj, G_orig
+    print(f"DEBUG: Checking graph... G_proj={G_proj is not None}, G_orig={G_orig is not None}")
 
     if G_proj is None or G_orig is None:
         print("Loading road network...")

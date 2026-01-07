@@ -160,6 +160,10 @@ def traffic_status():
     # returns a trivial confirmation
     return jsonify({'tomtom_key_present': bool(os.environ.get('TOMTOM_API_KEY'))}), 200
 
+@app.route('/api/version', methods=['GET'])
+def api_version():
+    return jsonify({'version': 'v2-fixed-lite', 'status': 'deployed'}), 200
+
 # --- WARMUP REMOVED ---
 # Startup warmup often causes Render boot timeouts (502).
 # We will load graph strictly on-demand.

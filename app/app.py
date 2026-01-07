@@ -144,14 +144,14 @@ def traffic_status():
     # returns a trivial confirmation
     return jsonify({'tomtom_key_present': bool(os.environ.get('TOMTOM_API_KEY'))}), 200
 
-# --- WARMUP ---
-# Attempt to load the graph immediately when the app starts (worker boot).
-# This prevents the first user request from hanging/lagging.
-try:
-    print("Pre-loading graph...")
-    _build_or_load_graph()
-except Exception as e:
-    print(f"Graph pre-load failed (non-fatal, will retry on request): {e}")
+# --- WARMUP REMOVED ---
+# Startup warmup often causes Render boot timeouts (502).
+# We will load graph strictly on-demand.
+# try:
+#     print("Pre-loading graph...")
+#     _build_or_load_graph()
+# except Exception as e:
+#     print(f"Graph pre-load failed (non-fatal, will retry on request): {e}")
 
 # --- RUNNING THE APPLICATION ---
 if __name__ == '__main__':

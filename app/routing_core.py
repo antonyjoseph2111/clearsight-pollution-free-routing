@@ -184,37 +184,18 @@ def _build_or_load_graph():
                 G_proj = None
 
             # 2. Download from OSM (Filtered for Memory Efficiency)
-            print("Attempting to download Delhi BBox (Major Roads)...")
+            print("🚀 SHOWCASE LITE MODE: Downloading 2km Radius (Connaught Place)...")
             
-            # Strategy A: Delhi Bounding Box (Major Roads)
-            # Roughly covers Delhi NCT
-            north, south, east, west = 28.88, 28.40, 77.35, 76.83
+            # Strategy: Fixed 2km Radius (Guaranteed Connectivity & Low Memory)
+            center_point = (28.6139, 77.2090) 
+            dist = 2000 # 2km radius
             
-            # Filter: Exclude residential, service, unclassified, etc.
-            cf = '["highway"~"motorway|trunk|primary|secondary|tertiary"]'
-
-            try:
-                # Try loading the large area first
-                G_orig = ox.graph_from_bbox(
-                    north, south, east, west,
-                    custom_filter=cf,
-                    simplify=True
-                )
-                print(f"Delhi BBox Graph loaded. Nodes: {len(G_orig.nodes)}, Edges: {len(G_orig.edges)}")
-
-            except Exception as e:
-                print(f"⚠️ Failed to load Delhi BBox ({e}). Falling back to reduced radius...")
-                
-                # Strategy B: Fallback to Small Radius (Safe Mode)
-                center_point = (28.6139, 77.2090) 
-                dist = 2000 # 2km safe radius
-                
-                G_orig = ox.graph_from_point(
-                    center_point, 
-                    dist=dist, 
-                    network_type="drive"
-                )
-                print(f"Fallback Graph loaded (2km radius). Nodes: {len(G_orig.nodes)}")
+            G_orig = ox.graph_from_point(
+                center_point, 
+                dist=dist, 
+                network_type="drive"
+            )
+            print(f"✅ Showcase Graph loaded (2km radius). Nodes: {len(G_orig.nodes)}")
 
             G_proj = ox.project_graph(G_orig)
             

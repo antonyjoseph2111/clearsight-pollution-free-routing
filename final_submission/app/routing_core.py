@@ -184,33 +184,46 @@ def _build_or_load_graph():
                 G_proj = None
 
             # 2. Download from OSM (Filtered for Memory Efficiency)
-            print("Downloading graph from OSM for Delhi (Major Roads Only)...")
+            print("Attempting to download Delhi BBox (Major Roads)...")
             
-            # Strategies for Memory Efficiency:
-            # 1. Use 'custom_filter' to keep only major roads (motorway -> tertiary).
-            #    This reduces the graph size by ~80% while covering the whole city.
-            # 2. Use 'Delhi, India' which covers the NCT (National Capital Territory).
+            # Strategy A: Delhi Bounding Box (Major Roads)
+            # Roughly covers Delhi NCT
+            north, south, east, west = 28.88, 28.40, 77.35, 76.83
             
-            place_name = "Delhi, India"
             # Filter: Exclude residential, service, unclassified, etc.
             cf = '["highway"~"motorway|trunk|primary|secondary|tertiary"]'
 
             try:
-                # remove 'network_type' when using 'custom_filter' in some ox versions, 
-                # but usually they can coexist if filter is specific. 
-                # Safer to rely on custom_filter fully.
-                G_orig = ox.graph_from_place(
-                    place_name, 
+                # Try loading the large area first
+                G_orig = ox.graph_from_bbox(
+                    north, south, east, west,
                     custom_filter=cf,
                     simplify=True
                 )
+                print(f"Delhi BBox Graph loaded. Nodes: {len(G_orig.nodes)}, Edges: {len(G_orig.edges)}")
+
+            except Exception as e:
+                print(f"⚠️ Failed to load Delhi BBox ({e}). Falling back to reduced radius...")
                 
-                print(f"Graph loaded. Nodes: {len(G_orig.nodes)}, Edges: {len(G_orig.edges)}")
-                G_proj = ox.project_graph(G_orig)
+                # Strategy B: Fallback to Small Radius (Safe Mode)
+                center_point = (28.6139, 77.2090) 
+                dist = 2000 # 2km safe radius
                 
-                # Cache it for next time
+                G_orig = ox.graph_from_point(
+                    center_point, 
+                    dist=dist, 
+                    network_type="drive"
+                )
+                print(f"Fallback Graph loaded (2km radius). Nodes: {len(G_orig.nodes)}")
+
+            G_proj = ox.project_graph(G_orig)
+            
+            # Cache it for next time
+            try:
                 print(f"Saving graph cache to {cache_path}...")
                 ox.save_graphml(G_proj, filepath=cache_path)
+            except Exception as e:
+                print(f"Warning: Could not save cache ({e}) - continuing without it.")
             except Exception as e:
                 print(f"Error downloading/saving graph: {e}")
                 # Fallback to a tiny graph if download fails? 

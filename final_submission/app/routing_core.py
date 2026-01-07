@@ -183,16 +183,29 @@ def _build_or_load_graph():
                 print(f"Failed to load cache: {e}. Downloading new graph...")
                 G_proj = None
 
-        # 2. Download if missing
-        if G_proj is None:
-            print("Downloading graph from OSM...")
-            # Use specific point and radius (2km) to save memory (vs whole city)
-            # Connaught Place / Central Delhi
-            center_point = (28.6139, 77.2090) 
-            dist = 1500 # 1.5 km radius - reduced further to prevent Gunicorn timeout (30s)
+            # 2. Download from OSM (Filtered for Memory Efficiency)
+            print("Downloading graph from OSM for Delhi (Major Roads Only)...")
             
+            # Strategies for Memory Efficiency:
+            # 1. Use 'custom_filter' to keep only major roads (motorway -> tertiary).
+            #    This reduces the graph size by ~80% while covering the whole city.
+            # 2. Use 'Delhi, India' which covers the NCT (National Capital Territory).
+            
+            place_name = "Delhi, India"
+            # Filter: Exclude residential, service, unclassified, etc.
+            cf = '["highway"~"motorway|trunk|primary|secondary|tertiary"]'
+
             try:
-                G_orig = ox.graph_from_point(center_point, dist=dist, network_type="drive")
+                # remove 'network_type' when using 'custom_filter' in some ox versions, 
+                # but usually they can coexist if filter is specific. 
+                # Safer to rely on custom_filter fully.
+                G_orig = ox.graph_from_place(
+                    place_name, 
+                    custom_filter=cf,
+                    simplify=True
+                )
+                
+                print(f"Graph loaded. Nodes: {len(G_orig.nodes)}, Edges: {len(G_orig.edges)}")
                 G_proj = ox.project_graph(G_orig)
                 
                 # Cache it for next time

@@ -127,40 +127,18 @@ def traffic_refresh():
         return jsonify({'ok': False, 'error': str(e)}), 500
 
 
-@app.route('/favicon.ico')
-def favicon():
-    return '', 204
-
-@app.errorhandler(404)
-def not_found(e):
-    return jsonify({'error': 'Not found'}), 404
-
-@app.errorhandler(500)
-def server_error(e):
-    return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
-
 @app.route('/api/traffic_status', methods=['GET'])
 def traffic_status():
     # returns a trivial confirmation
     return jsonify({'tomtom_key_present': bool(os.environ.get('TOMTOM_API_KEY'))}), 200
 
-# --- WARMUP ---
-# Attempt to load the graph immediately when the app starts (worker boot).
-# This prevents the first user request from hanging/lagging.
-try:
-    print("Pre-loading graph...")
-    _build_or_load_graph()
-except Exception as e:
-    print(f"Graph pre-load failed (non-fatal, will retry on request): {e}")
-
 # --- RUNNING THE APPLICATION ---
 if __name__ == '__main__':
     # Ensure the data directory exists
     if not os.path.exists('./data'):
-        try:
-            os.makedirs('./data')
-            print("Created './data' directory.")
-        except: pass
+        os.makedirs('./data')
+        print("Created './data' directory. Place ERA5 parquet file here if you have one.")
     
     print("\n--- FLASK SERVER STARTED ---")
+    print(f"Access the application at http://127.0.0.1:5000/")
     app.run(debug=True, port=5000, use_reloader=False)

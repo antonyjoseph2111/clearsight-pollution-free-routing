@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# VS Code
+.vscode/
+
+# Large Data Files
+*.grib
+*.nc
+*.zip
+*.h5
+*.pb
+*.csv
+!app/doc/*.csv
+!data/data.py
+!data/output.csv
+data/era5*
+data/*.grib
+data/*.nc
+data/*.zip
+data/era5_*.csv
+models/*.h5
+
+
+# Temporary Folders
+clearsight_clone/
+analysis_external/
+
+# System
+.DS_Store
+Thumbs.db

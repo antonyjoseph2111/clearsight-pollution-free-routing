@@ -155,6 +155,11 @@ def not_found(e):
 def server_error(e):
     return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
 
+@app.errorhandler(Exception)
+def unhandled_exception(e):
+    logging.error(f"Unhandled Exception: {e}", exc_info=True)
+    return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
+
 @app.route('/api/traffic_status', methods=['GET'])
 def traffic_status():
     # returns a trivial confirmation

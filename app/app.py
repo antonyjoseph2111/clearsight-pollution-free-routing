@@ -167,7 +167,7 @@ def traffic_status():
 
 @app.route('/api/version', methods=['GET'])
 def api_version():
-    return jsonify({'version': 'v2-fixed-lite', 'status': 'deployed'}), 200
+    return jsonify({'version': 'v3-pregen-graph', 'status': 'deployed'}), 200
 
 # --- WARMUP REMOVED ---
 # Startup warmup often causes Render boot timeouts (502).

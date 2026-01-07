@@ -166,7 +166,7 @@ def _build_or_load_graph():
 
         # 1. Try Loading Cache
         if os.path.exists(cache_path):
-            print(f"Loading cached graph from {cache_path}...")
+            print(f"✅ FOUND PRE-GENERATED GRAPH at {cache_path}. Loading...")
             try:
                 G_proj = ox.load_graphml(cache_path)
                 

@@ -194,27 +194,27 @@ def _build_or_load_graph():
             G_orig = nx.grid_2d_graph(5, 5) # 5x5 grid
             G_orig = nx.MultiDiGraph(G_orig) # Convert to MultiDiGraph
                 
-                # Assign fake coordinates centered on CP
-                for i, node in enumerate(G_orig.nodes()):
-                    # distinct IDs
-                    nx.set_node_attributes(G_orig, {node: {'x': 77.2090 + (node[0]-2)*0.01, 'y': 28.6139 + (node[1]-2)*0.01}})
-                
-                # Relabel nodes to integers to match OSMnx expectations
-                G_orig = nx.convert_node_labels_to_integers(G_orig)
-                
-                # Add edge attributes expected by the app
-                for u, v, k, data in G_orig.edges(keys=True, data=True):
-                    data['length'] = 500
-                    data['maxspeed'] = 50
-                    data['travel_time'] = 30
-                    if 'geometry' not in data:
-                        # Fake straight line geometry
-                        p1 = Point(G_orig.nodes[u]['x'], G_orig.nodes[u]['y'])
-                        p2 = Point(G_orig.nodes[v]['x'], G_orig.nodes[v]['y'])
-                        # data['geometry'] = ... (Optional, app handles missing geometry)
+            # Assign fake coordinates centered on CP
+            for i, node in enumerate(G_orig.nodes()):
+                # distinct IDs
+                nx.set_node_attributes(G_orig, {node: {'x': 77.2090 + (node[0]-2)*0.01, 'y': 28.6139 + (node[1]-2)*0.01}})
+            
+            # Relabel nodes to integers to match OSMnx expectations
+            G_orig = nx.convert_node_labels_to_integers(G_orig)
+            
+            # Add edge attributes expected by the app
+            for u, v, k, data in G_orig.edges(keys=True, data=True):
+                data['length'] = 500
+                data['maxspeed'] = 50
+                data['travel_time'] = 30
+                if 'geometry' not in data:
+                    # Fake straight line geometry
+                    p1 = Point(G_orig.nodes[u]['x'], G_orig.nodes[u]['y'])
+                    p2 = Point(G_orig.nodes[v]['x'], G_orig.nodes[v]['y'])
+                    # data['geometry'] = ... (Optional, app handles missing geometry)
 
-                G_proj = G_orig # No projection needed for fake grid, or project if strict
-                print(f"✅ Synthetic Fallback Graph loaded. Nodes: {len(G_orig.nodes)}")
+            G_proj = G_orig # No projection needed for fake grid, or project if strict
+            print(f"✅ Synthetic Fallback Graph loaded. Nodes: {len(G_orig.nodes)}")
 
         # 3. Enhance Graph (Travel Time)
         if G_proj:

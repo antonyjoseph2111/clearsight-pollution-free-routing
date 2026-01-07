@@ -141,7 +141,7 @@ function updateInput(which) {
 async function onMapClick(e) {
     hideMessage();
     const lat = e.latlng.lat, lon = e.latlng.lng;
-    
+
     // Optimistic UI: Immediately place a temporary marker so user sees the click registered
     const tempMarker = L.marker([lat, lon], { opacity: 0.5 }).addTo(map);
     showMessage('Snapping to road...', false);
@@ -150,18 +150,25 @@ async function onMapClick(e) {
     let snapped;
     try {
         snapped = await snapToServer(lat, lon);
+
+        // Check for backend logic error (distance too far)
+        if (snapped.error) {
+            showMessage(snapped.error, true);
+            return; // STOP: Do not place marker
+        }
+
         showMessage('Point set', false);
     } catch (err) {
         console.warn('Snap failed, using raw coords', err);
-        showMessage('Snap failed - using exact location', false); // Not an error to user
+        showMessage('Snap failed - using exact location', false);
         snapped = { lat, lon };
     } finally {
         // Remove temp marker
         map.removeLayer(tempMarker);
     }
-    
+
     placeOrMoveMarker(nextClickTarget, [snapped.lat, snapped.lon]);
-    
+
     // alternate target
     nextClickTarget = (nextClickTarget === 'start') ? 'end' : 'start';
 }
@@ -171,11 +178,11 @@ async function snapToServer(lat, lon) {
     try {
         const resp = await fetch(API_SNAP, {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ lat, lon })
         });
         if (!resp.ok) {
-            const txt = await resp.text().catch(()=>'');
+            const txt = await resp.text().catch(() => '');
             throw new Error(`Snap API ${resp.status} ${txt}`);
         }
         return await resp.json();
@@ -214,9 +221,9 @@ function addSearchBox() {
 }
 
 async function nominatimSearch(q, resultsEl) {
-const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&addressdetails=1&limit=6&countrycodes=in`;
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&addressdetails=1&limit=6&countrycodes=in`;
     try {
-        const r = await fetch(url, { headers: { 'Accept-Language': 'en' }});
+        const r = await fetch(url, { headers: { 'Accept-Language': 'en' } });
         if (!r.ok) return;
         const data = await r.json();
         resultsEl.innerHTML = data.map(item => {
@@ -324,7 +331,7 @@ async function findRoutes() {
     try {
         const resp = await fetch(API_ROUTE, {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ start, end, weight })
         });
         const data = await resp.json();
@@ -357,7 +364,7 @@ async function refreshLiveTraffic() {
     try {
         const resp = await fetch(API_TRAFFIC_REFRESH, {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ max_points: 120, spacing_deg: 0.005 })
         });
         const data = await resp.json();
@@ -397,7 +404,7 @@ function addCenterButtons() {
 async function setAtCenter(which) {
     try {
         const c = map.getCenter();
-        const snapped = await snapToServer(c.lat, c.lng).catch(()=>({lat:c.lat, lon:c.lng}));
+        const snapped = await snapToServer(c.lat, c.lng).catch(() => ({ lat: c.lat, lon: c.lng }));
         placeOrMoveMarker(which, [snapped.lat, snapped.lon]);
         updateInput(which);
         enableRouteButtonIfReady();
